@@ -1,257 +1,86 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="mr">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>1-20 Secret Number Game</title>
-  <style>
-    :root{font-family:system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;}
-    body{margin:0;padding:20px;background:#f4f7fb;color:#111}
-    .container{max-width:800px;margin:0 auto;background:#fff;padding:20px;border-radius:8px;box-shadow:0 6px 20px rgba(0,0,0,.08)}
-    h1{margin-top:0;font-size:20px}
-    .row{display:flex;gap:12px;flex-wrap:wrap}
-    label{display:block;margin-bottom:6px;font-weight:600}
-    input[type="number"], input[type="text"], select{padding:8px;border:1px solid #d6dbe6;border-radius:6px;width:100%}
-    button{padding:10px 14px;border-radius:6px;border:0;background:#1867f2;color:#fff;cursor:pointer}
-    button.secondary{background:#6b7280}
-    .card{padding:12px;border-radius:8px;border:1px solid #eef2f7;background:#fbfdff}
-    .players-list{margin-top:12px}
-    .player-item{display:flex;align-items:center;justify-content:space-between;padding:8px;border-bottom:1px solid #eef2f7}
-    .eliminated{opacity:.45;text-decoration:line-through}
-    .hidden-secret{font-weight:700;letter-spacing:2px}
-    .big{font-size:18px;margin:12px 0}
-    .center{text-align:center}
-    .muted{color:#6b7280;font-size:13px}
-    .footer{margin-top:18px;text-align:right}
-    .notice{background:#fffbe6;border:1px solid #ffecb5;padding:10px;border-radius:6px;margin-bottom:12px}
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marathi Number Game 🎮</title>
+    <style>
+        :root { --main: #4a4e69; --out: #e63946; --miss: #2a9d8f; }
+        body { font-family: sans-serif; background: #f8f9fa; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+        .card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center; }
+        input { width: 85%; padding: 12px; margin: 5px; border: 2px solid #ddd; border-radius: 8px; font-size: 16px; }
+        .btn-add { background: var(--main); color: white; border: none; padding: 12px; border-radius: 8px; width: 90%; cursor: pointer; font-weight: bold; }
+        .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin: 20px 0; }
+        .box { height: 55px; background: white; border: 2px solid var(--main); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: bold; cursor: pointer; color: var(--main); }
+        .box.used { background: #d1d1d1; border-color: #888; color: #777; pointer-events: none; }
+        #msg { padding: 12px; border-radius: 10px; font-weight: bold; margin-bottom: 15px; display: none; }
+        .p-list { text-align: left; background: #f1f1f1; padding: 10px; border-radius: 8px; font-size: 14px; }
+    </style>
 </head>
 <body>
-  <div class="container">
-    <h1>1–20 Secret Number Game</h1>
-    <div id="setup" class="card">
-      <div class="row">
-        <div style="flex:1">
-          <label>खेळाडू किती ? (Players)</label>
-          <select id="playerCount">
-            <option>2</option><option>3</option><option>4</option><option>5</option><option>6</option>
-            <option>7</option><option>8</option><option>9</option><option>10</option>
-          </select>
-        </div>
-        <div style="flex:1;align-self:flex-end">
-          <button id="startSetup">सुरू करा / Start</button>
-        </div>
-      </div>
-      <p class="muted">प्रत्येक खेळाडू आपला गुप्त नंबर (1–20) निवडेल. इतरांनी स्वतःचा नंबर बोलू नये.</p>
+
+<div class="card">
+    <h2>१-२० लपाछपी 🎯</h2>
+    <div style="margin-bottom:15px;">
+        <input type="text" id="name" placeholder="प्लेयरचे नाव">
+        <input type="password" id="num" placeholder="गुपित नंबर (1-20)">
+        <button class="btn-add" onclick="register()">Add Player</button>
     </div>
+    <div id="msg"></div>
+    <div class="grid" id="grid"></div>
+    <div class="p-list" id="list">प्लेयर्स येणे बाकी...</div>
+</div>
 
-    <div id="nameInputs" class="card" style="display:none;margin-top:12px"></div>
+<script>
+    let players = [];
+    const marathiNumbers = {1:"एक", 2:"दोन", 3:"तीन", 4:"चार", 5:"पाच", 6:"सहा", 7:"सात", 8:"आठ", 9:"नऊ", 10:"दहा", 11:"अकरा", 12:"बारा", 13:"तेरा", 14:"चौदा", 15:"पंधरा", 16:"सोळा", 17:"सतरा", 18:"अठरा", 19:"एकोणीस", 20:"वीस"};
 
-    <div id="secretPick" class="card" style="display:none;margin-top:12px"></div>
+    function speak(text) {
+        let u = new SpeechSynthesisUtterance(text);
+        u.lang = 'mr-IN';
+        window.speechSynthesis.speak(u);
+    }
 
-    <div id="gameArea" class="card" style="display:none;margin-top:12px">
-      <div id="statusTop" class="big"></div>
-      <div id="playersBoard" class="players-list"></div>
+    function register() {
+        let n = document.getElementById('name').value;
+        let v = parseInt(document.getElementById('num').value);
+        if(!n || v < 1 || v > 20) return alert("योग्य माहिती भरा!");
+        players.push({ name: n, secret: v, alive: true });
+        document.getElementById('name').value = ''; document.getElementById('num').value = '';
+        updateList();
+        alert(n + " ऍड झाला!");
+    }
 
-      <div id="turnArea" style="margin-top:12px">
-        <label id="turnLabel">Current turn</label>
-        <div style="display:flex;gap:8px;align-items:center;margin-top:8px">
-          <input id="spokenNumber" type="number" min="1" max="20" placeholder="1–20" />
-          <button id="sayBtn">सांग / Say</button>
-          <button id="skipBtn" class="secondary">Skip</button>
-        </div>
-        <p class="muted" style="margin-top:8px">टीप: स्वतःचा निवडलेला नंबर बोलू नका — system तेपासून अडवेल.</p>
-      </div>
-
-      <div class="footer">
-        <button id="restartBtn" class="secondary">रिस्टार्ट</button>
-      </div>
-    </div>
-
-    <div id="resultModal" style="display:none;margin-top:12px" class="card center"></div>
-  </div>
-
-  <script>
-    // State
-    let players = []; // {name, secret, eliminated}
-    let currentIndex = 0;
-    let playerCount = 2;
-    const q = (id)=>document.getElementById(id);
-
-    // Setup start
-    q('startSetup').addEventListener('click', ()=>{
-      playerCount = parseInt(q('playerCount').value,10);
-      showNameInputs(playerCount);
-    });
-
-    function showNameInputs(n){
-      const container = q('nameInputs');
-      container.style.display='block';
-      container.innerHTML = '<label>Players च्या नावे घाला (एखादं रिकामं ठेवलं तर Player 1,2 वापरले जातील)</label>';
-      const wrapper = document.createElement('div');
-      wrapper.className='row';
-      for(let i=0;i<n;i++){
-        const div = document.createElement('div');
-        div.style.flex='1';
-        div.innerHTML = '<input type="text" id="pname'+i+'" placeholder="Player '+(i+1)+' name" />';
-        wrapper.appendChild(div);
-      }
-      container.appendChild(wrapper);
-      const btn = document.createElement('button');
-      btn.textContent = 'नावे जतन करा / Save names';
-      btn.style.marginTop='8px';
-      btn.addEventListener('click', ()=>{
-        players = [];
-        for(let i=0;i<n;i++){
-          const v = q('pname'+i).value.trim() || ('Player '+(i+1));
-          players.push({name:v, secret:null, eliminated:false});
+    function play(n, el) {
+        if(players.length === 0) return alert("आधी प्लेयर ऍड करा!");
+        speak(marathiNumbers[n]);
+        let msg = document.getElementById('msg');
+        let found = false;
+        players.forEach(p => {
+            if(p.alive && p.secret === n) {
+                p.alive = false; found = true;
+                msg.style.display = "block"; msg.style.background = "#e63946"; msg.style.color = "white";
+                msg.innerHTML = p.name + " आउट झाला! 💀";
+                speak(p.name + " आउट झाला");
+            }
+        });
+        if(!found) {
+            msg.style.display = "block"; msg.style.background = "#2a9d8f"; msg.style.color = "white";
+            msg.innerHTML = "Miss Number! ✅";
+            speak("मिस नंबर");
         }
-        container.style.display='none';
-        startSecretPhase();
-      });
-      container.appendChild(btn);
+        el.classList.add('used');
+        updateList();
     }
 
-    // Secret selection loop
-    let secretIndex = 0;
-    function startSecretPhase(){
-      secretIndex = 0;
-      q('secretPick').style.display='block';
-      renderSecretPick();
+    function updateList() {
+        document.getElementById('list').innerHTML = players.map(p => `<div>${p.alive ? '👤' : '❌'} ${p.name}</div>`).join('');
     }
 
-    function renderSecretPick(){
-      const c = q('secretPick');
-      const p = players[secretIndex];
-      c.innerHTML = '<div class="center"><strong>'+p.name+'</strong>, तुमचा गुप्त नंबर निवडा (1–20)</div>';
-      c.innerHTML += '<div style="margin-top:12px;display:flex;gap:8px"><input id="secretInput" type="number" min="1" max="20" placeholder="1–20" /><button id="saveSecretBtn">Save</button></div>';
-      c.innerHTML += '<p class="muted" style="margin-top:8px">इतरांनी बघू नये — डिव्हाइस पुढील व्यक्तीकडे द्या.</p>';
-      q('saveSecretBtn').addEventListener('click', ()=>{
-        const v = parseInt(q('secretInput').value,10);
-        if(!v || v<1 || v>20){ alert('कृपया 1 ते 20 मधील नंबर द्या'); return;}
-        players[secretIndex].secret = v;
-        // move to next
-        secretIndex++;
-        if(secretIndex >= players.length){
-          q('secretPick').style.display='none';
-          startGame();
-        } else {
-          renderSecretPick();
-        }
-      });
+    for (let i = 1; i <= 20; i++) {
+        let b = document.createElement('div'); b.className = 'box'; b.innerText = i;
+        b.onclick = () => play(i, b); document.getElementById('grid').appendChild(b);
     }
-
-    // Start game
-    function startGame(){
-      currentIndex = 0;
-      q('gameArea').style.display='block';
-      renderPlayersBoard();
-      renderTurn();
-    }
-
-    function renderPlayersBoard(){
-      const board = q('playersBoard');
-      board.innerHTML = '';
-      players.forEach((pl, idx)=>{
-        const div = document.createElement('div');
-        div.className = 'player-item' + (pl.eliminated ? ' eliminated' : '');
-        div.innerHTML = '<div><strong>'+pl.name+'</strong> <div class="muted">status: '+(pl.eliminated ? 'Out' : 'In')+'</div></div>' +
-                        '<div class="hidden-secret">'+(pl.eliminated ? '—' : '****')+'</div>';
-        board.appendChild(div);
-      });
-      updateStatusTop();
-    }
-
-    function activePlayers(){
-      return players.filter(p=>!p.eliminated);
-    }
-
-    function updateStatusTop(){
-      const ap = activePlayers().length;
-      q('statusTop').textContent = 'Alive: '+ap + '  —  Last to say wins';
-    }
-
-    function nextActiveIndex(from){
-      let i = (from+1) % players.length;
-      for(let k=0;k<players.length;k++){
-        if(!players[i].eliminated) return i;
-        i = (i+1) % players.length;
-      }
-      return -1;
-    }
-
-    function renderTurn(){
-      // ensure currentIndex points to an active player
-      if(players[currentIndex].eliminated){
-        currentIndex = nextActiveIndex(currentIndex);
-        if(currentIndex === -1){ endGame(); return; }
-      }
-      const cur = players[currentIndex];
-      q('turnLabel').textContent = cur.name + ' यांची वाऱ्या आहे — एक नंबर बोला (1–20)';
-      q('spokenNumber').value = '';
-      renderPlayersBoard();
-    }
-
-    // Say button
-    q('sayBtn').addEventListener('click', ()=>{
-      const n = parseInt(q('spokenNumber').value,10);
-      if(!n || n<1 || n>20){ alert('कृपया 1–20 मधला नंबर टाका'); return; }
-      const cur = players[currentIndex];
-      if(n === cur.secret){
-        alert('तुम्ही तुमचा स्वतःचा नंबर बोलू शकत नाही — पुन्हा बोला.');
-        return;
-      }
-      // find matches among others (not eliminated)
-      const matched = [];
-      players.forEach((p, idx)=>{
-        if(idx!==currentIndex && !p.eliminated && p.secret === n) matched.push(idx);
-      });
-      if(matched.length>0){
-        // eliminate matched players
-        const names = matched.map(i=>players[i].name);
-        matched.forEach(i=> players[i].eliminated = true);
-        renderPlayersBoard();
-        alert('अपेक्षित! Eliminated: ' + names.join(', '));
-        // check end
-        if(activePlayers().length <= 1){ endGame(); return; }
-        // next active player (after current)
-        currentIndex = nextActiveIndex(currentIndex);
-        if(currentIndex === -1){ endGame(); return; }
-        renderTurn();
-      } else {
-        // Miss popup and confirm to continue
-        const ok = confirm('Miss number — कोणीही हा नंबर सेट केलेला नाही.\nपुढे जाऊ?');
-        if(!ok) return;
-        currentIndex = nextActiveIndex(currentIndex);
-        if(currentIndex === -1){ endGame(); return; }
-        renderTurn();
-      }
-    });
-
-    q('skipBtn').addEventListener('click', ()=>{
-      // allow skip (if user wants)
-      currentIndex = nextActiveIndex(currentIndex);
-      if(currentIndex === -1){ endGame(); return; }
-      renderTurn();
-    });
-
-    q('restartBtn').addEventListener('click', ()=>{
-      if(confirm('नवीन गेम सुरु करायचा?')) location.reload();
-    });
-
-    function endGame(){
-      q('gameArea').style.display='none';
-      const alive = activePlayers();
-      const modal = q('resultModal');
-      modal.style.display='block';
-      if(alive.length === 1){
-        modal.innerHTML = '<h2>जिंकलं: '+alive[0].name+'</h2><p class="muted">अभिनंदन!</p><div style="margin-top:12px"><button id="playAgain">पुन्हा खेळा</button></div>';
-      } else {
-        modal.innerHTML = '<h2>गेम संपला</h2><p class="muted">कोणताही विजेताच ठरला नाही.</p><div style="margin-top:12px"><button id="playAgain">पुन्हा खेळा</button></div>';
-      }
-      q('playAgain').addEventListener('click', ()=>location.reload());
-    }
-
-  </script>
+</script>
 </body>
 </html>
