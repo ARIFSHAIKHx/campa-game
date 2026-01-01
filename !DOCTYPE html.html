@@ -1,131 +1,257 @@
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<html lang="mr">
 <head>
-	<meta http-equiv="content-type" content="text/html; charset=utf-8"/>
-	<title></title>
-	<meta name="generator" content="LibreOffice 25.2.3.2 (Linux)"/>
-	<meta name="created" content="00:00:00"/>
-	<meta name="changed" content="00:00:00"/>
-	<style type="text/css">
-		@page { size: 8.27in 11.69in; margin: 0.79in }
-		p { margin-bottom: 0.1in; line-height: 115%; background: transparent }
-		pre { font-size: 10pt; font-family: "Liberation Mono", monospace; background: transparent }
-	</style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>1-20 Secret Number Game</title>
+  <style>
+    :root{font-family:system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;}
+    body{margin:0;padding:20px;background:#f4f7fb;color:#111}
+    .container{max-width:800px;margin:0 auto;background:#fff;padding:20px;border-radius:8px;box-shadow:0 6px 20px rgba(0,0,0,.08)}
+    h1{margin-top:0;font-size:20px}
+    .row{display:flex;gap:12px;flex-wrap:wrap}
+    label{display:block;margin-bottom:6px;font-weight:600}
+    input[type="number"], input[type="text"], select{padding:8px;border:1px solid #d6dbe6;border-radius:6px;width:100%}
+    button{padding:10px 14px;border-radius:6px;border:0;background:#1867f2;color:#fff;cursor:pointer}
+    button.secondary{background:#6b7280}
+    .card{padding:12px;border-radius:8px;border:1px solid #eef2f7;background:#fbfdff}
+    .players-list{margin-top:12px}
+    .player-item{display:flex;align-items:center;justify-content:space-between;padding:8px;border-bottom:1px solid #eef2f7}
+    .eliminated{opacity:.45;text-decoration:line-through}
+    .hidden-secret{font-weight:700;letter-spacing:2px}
+    .big{font-size:18px;margin:12px 0}
+    .center{text-align:center}
+    .muted{color:#6b7280;font-size:13px}
+    .footer{margin-top:18px;text-align:right}
+    .notice{background:#fffbe6;border:1px solid #ffecb5;padding:10px;border-radius:6px;margin-bottom:12px}
+  </style>
 </head>
-<body lang="en-US" link="#000080" vlink="#800000" dir="ltr"><pre>&lt;!DOCTYPE html&gt;
-&lt;html lang=&quot;mr&quot;&gt;
-&lt;head&gt;
-    &lt;meta charset=&quot;UTF-8&quot;&gt;
-    &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;&gt;
-    &lt;title&gt;Touch Number Game&lt;/title&gt;
-    &lt;style&gt;
-        :root { --bg: #f0f2f5; --card: #ffffff; --primary: #6c5ce7; --out: #ff7675; --miss: #55efc4; }
-        body { font-family: 'Poppins', sans-serif; background: var(--bg); display: flex; flex-direction: column; align-items: center; padding: 20px; }
-        .setup-container { background: var(--card); padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 400px; margin-bottom: 20px; text-align: center; }
-        input { width: 80%; padding: 10px; margin: 10px 0; border: 2px solid #ddd; border-radius: 8px; font-size: 16px; }
-        .btn-add { background: var(--primary); color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; }
-        
-        .grid-container { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; max-width: 400px; width: 100%; }
-        .num-box { aspect-ratio: 1/1; background: white; border: 2px solid var(--primary); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: bold; cursor: pointer; transition: 0.2s; color: var(--primary); }
-        .num-box:active { transform: scale(0.9); }
-        .num-box.clicked { background: #dfe6e9; border-color: #b2bec3; color: #636e72; pointer-events: none; }
-        
-        #status-msg { margin: 20px 0; padding: 15px; border-radius: 10px; font-weight: bold; width: 100%; max-width: 400px; text-align: center; display: none; }
-        .player-list { margin-top: 20px; width: 100%; max-width: 400px; background: white; padding: 15px; border-radius: 10px; }
-        .out-player { text-decoration: line-through; color: var(--out); font-weight: bold; }
-    &lt;/style&gt;
-&lt;/head&gt;
-&lt;body&gt;
+<body>
+  <div class="container">
+    <h1>1–20 Secret Number Game</h1>
+    <div id="setup" class="card">
+      <div class="row">
+        <div style="flex:1">
+          <label>खेळाडू किती ? (Players)</label>
+          <select id="playerCount">
+            <option>2</option><option>3</option><option>4</option><option>5</option><option>6</option>
+            <option>7</option><option>8</option><option>9</option><option>10</option>
+          </select>
+        </div>
+        <div style="flex:1;align-self:flex-end">
+          <button id="startSetup">सुरू करा / Start</button>
+        </div>
+      </div>
+      <p class="muted">प्रत्येक खेळाडू आपला गुप्त नंबर (1–20) निवडेल. इतरांनी स्वतःचा नंबर बोलू नये.</p>
+    </div>
 
-    &lt;div class=&quot;setup-container&quot;&gt;
-        &lt;h2&gt;<span lang="hi-IN">गेम सेटअप 🎮</span>&lt;/h2&gt;
-        &lt;input type=&quot;text&quot; id=&quot;playerName&quot; placeholder=&quot;<span lang="hi-IN">प्लेयरचे नाव</span>&quot;&gt;
-        &lt;input type=&quot;password&quot; id=&quot;secretNum&quot; placeholder=&quot;<span lang="hi-IN">गुपित नंबर </span>(1-20)&quot; maxlength=&quot;2&quot;&gt;
-        &lt;button class=&quot;btn-add&quot; onclick=&quot;register()&quot;&gt;Add Player&lt;/button&gt;
-    &lt;/div&gt;
+    <div id="nameInputs" class="card" style="display:none;margin-top:12px"></div>
 
-    &lt;div id=&quot;status-msg&quot;&gt;&lt;/div&gt;
+    <div id="secretPick" class="card" style="display:none;margin-top:12px"></div>
 
-    &lt;div class=&quot;grid-container&quot; id=&quot;grid&quot;&gt;
-        &lt;/div&gt;
+    <div id="gameArea" class="card" style="display:none;margin-top:12px">
+      <div id="statusTop" class="big"></div>
+      <div id="playersBoard" class="players-list"></div>
 
-    &lt;div class=&quot;player-list&quot;&gt;
-        &lt;strong&gt;<span lang="hi-IN">खेळणारे प्लेयर्स</span>:&lt;/strong&gt;
-        &lt;ul id=&quot;pList&quot; style=&quot;list-style: none; padding: 0; margin-top: 10px;&quot;&gt;&lt;/ul&gt;
-    &lt;/div&gt;
+      <div id="turnArea" style="margin-top:12px">
+        <label id="turnLabel">Current turn</label>
+        <div style="display:flex;gap:8px;align-items:center;margin-top:8px">
+          <input id="spokenNumber" type="number" min="1" max="20" placeholder="1–20" />
+          <button id="sayBtn">सांग / Say</button>
+          <button id="skipBtn" class="secondary">Skip</button>
+        </div>
+        <p class="muted" style="margin-top:8px">टीप: स्वतःचा निवडलेला नंबर बोलू नका — system तेपासून अडवेल.</p>
+      </div>
 
-&lt;script&gt;
-    let players = [];
-    const grid = document.getElementById('grid');
+      <div class="footer">
+        <button id="restartBtn" class="secondary">रिस्टार्ट</button>
+      </div>
+    </div>
 
-    // <span lang="hi-IN">१ ते २० बटन्स तयार करणे</span>
-    function createGrid() {
-        for (let i = 1; i &lt;= 20; i++) {
-            let box = document.createElement('div');
-            box.className = 'num-box';
-            box.innerText = i;
-            box.onclick = () =&gt; checkNumber(i, box);
-            grid.appendChild(box);
+    <div id="resultModal" style="display:none;margin-top:12px" class="card center"></div>
+  </div>
+
+  <script>
+    // State
+    let players = []; // {name, secret, eliminated}
+    let currentIndex = 0;
+    let playerCount = 2;
+    const q = (id)=>document.getElementById(id);
+
+    // Setup start
+    q('startSetup').addEventListener('click', ()=>{
+      playerCount = parseInt(q('playerCount').value,10);
+      showNameInputs(playerCount);
+    });
+
+    function showNameInputs(n){
+      const container = q('nameInputs');
+      container.style.display='block';
+      container.innerHTML = '<label>Players च्या नावे घाला (एखादं रिकामं ठेवलं तर Player 1,2 वापरले जातील)</label>';
+      const wrapper = document.createElement('div');
+      wrapper.className='row';
+      for(let i=0;i<n;i++){
+        const div = document.createElement('div');
+        div.style.flex='1';
+        div.innerHTML = '<input type="text" id="pname'+i+'" placeholder="Player '+(i+1)+' name" />';
+        wrapper.appendChild(div);
+      }
+      container.appendChild(wrapper);
+      const btn = document.createElement('button');
+      btn.textContent = 'नावे जतन करा / Save names';
+      btn.style.marginTop='8px';
+      btn.addEventListener('click', ()=>{
+        players = [];
+        for(let i=0;i<n;i++){
+          const v = q('pname'+i).value.trim() || ('Player '+(i+1));
+          players.push({name:v, secret:null, eliminated:false});
         }
+        container.style.display='none';
+        startSecretPhase();
+      });
+      container.appendChild(btn);
     }
 
-    function register() {
-        let name = document.getElementById('playerName').value;
-        let num = parseInt(document.getElementById('secretNum').value);
+    // Secret selection loop
+    let secretIndex = 0;
+    function startSecretPhase(){
+      secretIndex = 0;
+      q('secretPick').style.display='block';
+      renderSecretPick();
+    }
 
-        if(!name || isNaN(num) || num &lt; 1 || num &gt; 20) {
-            alert(&quot;<span lang="hi-IN">नाव आणि १ ते २० मधील नंबर टाका</span>!&quot;); return;
+    function renderSecretPick(){
+      const c = q('secretPick');
+      const p = players[secretIndex];
+      c.innerHTML = '<div class="center"><strong>'+p.name+'</strong>, तुमचा गुप्त नंबर निवडा (1–20)</div>';
+      c.innerHTML += '<div style="margin-top:12px;display:flex;gap:8px"><input id="secretInput" type="number" min="1" max="20" placeholder="1–20" /><button id="saveSecretBtn">Save</button></div>';
+      c.innerHTML += '<p class="muted" style="margin-top:8px">इतरांनी बघू नये — डिव्हाइस पुढील व्यक्तीकडे द्या.</p>';
+      q('saveSecretBtn').addEventListener('click', ()=>{
+        const v = parseInt(q('secretInput').value,10);
+        if(!v || v<1 || v>20){ alert('कृपया 1 ते 20 मधील नंबर द्या'); return;}
+        players[secretIndex].secret = v;
+        // move to next
+        secretIndex++;
+        if(secretIndex >= players.length){
+          q('secretPick').style.display='none';
+          startGame();
+        } else {
+          renderSecretPick();
         }
-
-        players.push({ name: name, num: num, active: true });
-        document.getElementById('playerName').value = &quot;&quot;;
-        document.getElementById('secretNum').value = &quot;&quot;;
-        updatePlayerList();
-        alert(name + &quot; <span lang="hi-IN">ऍड झाला</span>!&quot;);
+      });
     }
 
-    function checkNumber(guessedNum, element) {
-        if(players.length === 0) { alert(&quot;<span lang="hi-IN">आधी प्लेयर्स ऍड करा</span>!&quot;); return; }
-        
-        let status = document.getElementById('status-msg');
-        let found = false;
-
-        players.forEach(p =&gt; {
-            if(p.active &amp;&amp; p.num === guessedNum) {
-                p.active = false;
-                status.style.display = &quot;block&quot;;
-                status.style.background = &quot;#ff7675&quot;;
-                status.style.color = &quot;white&quot;;
-                status.innerHTML = &quot;BOOM! &quot; + p.name + &quot; <span lang="hi-IN">एलिमिनेट झाला</span>! 💀 (<span lang="hi-IN">नंबर</span>: &quot; + guessedNum + &quot;)&quot;;
-                found = true;
-            }
-        });
-
-        if(!found) {
-            status.style.display = &quot;block&quot;;
-            status.style.background = &quot;#55efc4&quot;;
-            status.style.color = &quot;#2d3436&quot;;
-            status.innerHTML = &quot;Miss Number! &quot; + guessedNum + &quot; <span lang="hi-IN">कोणाचाच नाही</span>. ✅&quot;;
-        }
-
-        element.classList.add('clicked'); // <span lang="hi-IN">बटनचा रंग बदलणे जेणेकरून कळेल तो नंबर दाबला आहे</span>
-        updatePlayerList();
+    // Start game
+    function startGame(){
+      currentIndex = 0;
+      q('gameArea').style.display='block';
+      renderPlayersBoard();
+      renderTurn();
     }
 
-    function updatePlayerList() {
-        let list = document.getElementById('pList');
-        list.innerHTML = &quot;&quot;;
-        players.forEach(p =&gt; {
-            let li = document.createElement('li');
-            li.innerHTML = p.active ? `✅ ${p.name}` : `&lt;span class=&quot;out-player&quot;&gt;❌ ${p.name} (Eliminated)&lt;/span&gt;`;
-            list.appendChild(li);
-        });
+    function renderPlayersBoard(){
+      const board = q('playersBoard');
+      board.innerHTML = '';
+      players.forEach((pl, idx)=>{
+        const div = document.createElement('div');
+        div.className = 'player-item' + (pl.eliminated ? ' eliminated' : '');
+        div.innerHTML = '<div><strong>'+pl.name+'</strong> <div class="muted">status: '+(pl.eliminated ? 'Out' : 'In')+'</div></div>' +
+                        '<div class="hidden-secret">'+(pl.eliminated ? '—' : '****')+'</div>';
+        board.appendChild(div);
+      });
+      updateStatusTop();
     }
 
-    createGrid();
-&lt;/script&gt;
+    function activePlayers(){
+      return players.filter(p=>!p.eliminated);
+    }
 
-&lt;/body&gt;
-&lt;/html&gt;</pre>
+    function updateStatusTop(){
+      const ap = activePlayers().length;
+      q('statusTop').textContent = 'Alive: '+ap + '  —  Last to say wins';
+    }
+
+    function nextActiveIndex(from){
+      let i = (from+1) % players.length;
+      for(let k=0;k<players.length;k++){
+        if(!players[i].eliminated) return i;
+        i = (i+1) % players.length;
+      }
+      return -1;
+    }
+
+    function renderTurn(){
+      // ensure currentIndex points to an active player
+      if(players[currentIndex].eliminated){
+        currentIndex = nextActiveIndex(currentIndex);
+        if(currentIndex === -1){ endGame(); return; }
+      }
+      const cur = players[currentIndex];
+      q('turnLabel').textContent = cur.name + ' यांची वाऱ्या आहे — एक नंबर बोला (1–20)';
+      q('spokenNumber').value = '';
+      renderPlayersBoard();
+    }
+
+    // Say button
+    q('sayBtn').addEventListener('click', ()=>{
+      const n = parseInt(q('spokenNumber').value,10);
+      if(!n || n<1 || n>20){ alert('कृपया 1–20 मधला नंबर टाका'); return; }
+      const cur = players[currentIndex];
+      if(n === cur.secret){
+        alert('तुम्ही तुमचा स्वतःचा नंबर बोलू शकत नाही — पुन्हा बोला.');
+        return;
+      }
+      // find matches among others (not eliminated)
+      const matched = [];
+      players.forEach((p, idx)=>{
+        if(idx!==currentIndex && !p.eliminated && p.secret === n) matched.push(idx);
+      });
+      if(matched.length>0){
+        // eliminate matched players
+        const names = matched.map(i=>players[i].name);
+        matched.forEach(i=> players[i].eliminated = true);
+        renderPlayersBoard();
+        alert('अपेक्षित! Eliminated: ' + names.join(', '));
+        // check end
+        if(activePlayers().length <= 1){ endGame(); return; }
+        // next active player (after current)
+        currentIndex = nextActiveIndex(currentIndex);
+        if(currentIndex === -1){ endGame(); return; }
+        renderTurn();
+      } else {
+        // Miss popup and confirm to continue
+        const ok = confirm('Miss number — कोणीही हा नंबर सेट केलेला नाही.\nपुढे जाऊ?');
+        if(!ok) return;
+        currentIndex = nextActiveIndex(currentIndex);
+        if(currentIndex === -1){ endGame(); return; }
+        renderTurn();
+      }
+    });
+
+    q('skipBtn').addEventListener('click', ()=>{
+      // allow skip (if user wants)
+      currentIndex = nextActiveIndex(currentIndex);
+      if(currentIndex === -1){ endGame(); return; }
+      renderTurn();
+    });
+
+    q('restartBtn').addEventListener('click', ()=>{
+      if(confirm('नवीन गेम सुरु करायचा?')) location.reload();
+    });
+
+    function endGame(){
+      q('gameArea').style.display='none';
+      const alive = activePlayers();
+      const modal = q('resultModal');
+      modal.style.display='block';
+      if(alive.length === 1){
+        modal.innerHTML = '<h2>जिंकलं: '+alive[0].name+'</h2><p class="muted">अभिनंदन!</p><div style="margin-top:12px"><button id="playAgain">पुन्हा खेळा</button></div>';
+      } else {
+        modal.innerHTML = '<h2>गेम संपला</h2><p class="muted">कोणताही विजेताच ठरला नाही.</p><div style="margin-top:12px"><button id="playAgain">पुन्हा खेळा</button></div>';
+      }
+      q('playAgain').addEventListener('click', ()=>location.reload());
+    }
+
+  </script>
 </body>
 </html>
