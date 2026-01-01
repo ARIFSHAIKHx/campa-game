@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=utf-8"/>
+	<title></title>
+	<meta name="generator" content="LibreOffice 25.2.3.2 (Linux)"/>
+	<meta name="created" content="00:00:00"/>
+	<meta name="changed" content="00:00:00"/>
+	<style type="text/css">
+		@page { size: 8.27in 11.69in; margin: 0.79in }
+		p { margin-bottom: 0.1in; line-height: 115%; background: transparent }
+		pre { font-size: 10pt; font-family: "Liberation Mono", monospace; background: transparent }
+	</style>
+</head>
+<body lang="en-US" link="#000080" vlink="#800000" dir="ltr"><pre>&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;mr&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;&gt;
+    &lt;title&gt;Touch Number Game&lt;/title&gt;
+    &lt;style&gt;
+        :root { --bg: #f0f2f5; --card: #ffffff; --primary: #6c5ce7; --out: #ff7675; --miss: #55efc4; }
+        body { font-family: 'Poppins', sans-serif; background: var(--bg); display: flex; flex-direction: column; align-items: center; padding: 20px; }
+        .setup-container { background: var(--card); padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 400px; margin-bottom: 20px; text-align: center; }
+        input { width: 80%; padding: 10px; margin: 10px 0; border: 2px solid #ddd; border-radius: 8px; font-size: 16px; }
+        .btn-add { background: var(--primary); color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        
+        .grid-container { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; max-width: 400px; width: 100%; }
+        .num-box { aspect-ratio: 1/1; background: white; border: 2px solid var(--primary); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: bold; cursor: pointer; transition: 0.2s; color: var(--primary); }
+        .num-box:active { transform: scale(0.9); }
+        .num-box.clicked { background: #dfe6e9; border-color: #b2bec3; color: #636e72; pointer-events: none; }
+        
+        #status-msg { margin: 20px 0; padding: 15px; border-radius: 10px; font-weight: bold; width: 100%; max-width: 400px; text-align: center; display: none; }
+        .player-list { margin-top: 20px; width: 100%; max-width: 400px; background: white; padding: 15px; border-radius: 10px; }
+        .out-player { text-decoration: line-through; color: var(--out); font-weight: bold; }
+    &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+
+    &lt;div class=&quot;setup-container&quot;&gt;
+        &lt;h2&gt;<span lang="hi-IN">गेम सेटअप 🎮</span>&lt;/h2&gt;
+        &lt;input type=&quot;text&quot; id=&quot;playerName&quot; placeholder=&quot;<span lang="hi-IN">प्लेयरचे नाव</span>&quot;&gt;
+        &lt;input type=&quot;password&quot; id=&quot;secretNum&quot; placeholder=&quot;<span lang="hi-IN">गुपित नंबर </span>(1-20)&quot; maxlength=&quot;2&quot;&gt;
+        &lt;button class=&quot;btn-add&quot; onclick=&quot;register()&quot;&gt;Add Player&lt;/button&gt;
+    &lt;/div&gt;
+
+    &lt;div id=&quot;status-msg&quot;&gt;&lt;/div&gt;
+
+    &lt;div class=&quot;grid-container&quot; id=&quot;grid&quot;&gt;
+        &lt;/div&gt;
+
+    &lt;div class=&quot;player-list&quot;&gt;
+        &lt;strong&gt;<span lang="hi-IN">खेळणारे प्लेयर्स</span>:&lt;/strong&gt;
+        &lt;ul id=&quot;pList&quot; style=&quot;list-style: none; padding: 0; margin-top: 10px;&quot;&gt;&lt;/ul&gt;
+    &lt;/div&gt;
+
+&lt;script&gt;
+    let players = [];
+    const grid = document.getElementById('grid');
+
+    // <span lang="hi-IN">१ ते २० बटन्स तयार करणे</span>
+    function createGrid() {
+        for (let i = 1; i &lt;= 20; i++) {
+            let box = document.createElement('div');
+            box.className = 'num-box';
+            box.innerText = i;
+            box.onclick = () =&gt; checkNumber(i, box);
+            grid.appendChild(box);
+        }
+    }
+
+    function register() {
+        let name = document.getElementById('playerName').value;
+        let num = parseInt(document.getElementById('secretNum').value);
+
+        if(!name || isNaN(num) || num &lt; 1 || num &gt; 20) {
+            alert(&quot;<span lang="hi-IN">नाव आणि १ ते २० मधील नंबर टाका</span>!&quot;); return;
+        }
+
+        players.push({ name: name, num: num, active: true });
+        document.getElementById('playerName').value = &quot;&quot;;
+        document.getElementById('secretNum').value = &quot;&quot;;
+        updatePlayerList();
+        alert(name + &quot; <span lang="hi-IN">ऍड झाला</span>!&quot;);
+    }
+
+    function checkNumber(guessedNum, element) {
+        if(players.length === 0) { alert(&quot;<span lang="hi-IN">आधी प्लेयर्स ऍड करा</span>!&quot;); return; }
+        
+        let status = document.getElementById('status-msg');
+        let found = false;
+
+        players.forEach(p =&gt; {
+            if(p.active &amp;&amp; p.num === guessedNum) {
+                p.active = false;
+                status.style.display = &quot;block&quot;;
+                status.style.background = &quot;#ff7675&quot;;
+                status.style.color = &quot;white&quot;;
+                status.innerHTML = &quot;BOOM! &quot; + p.name + &quot; <span lang="hi-IN">एलिमिनेट झाला</span>! 💀 (<span lang="hi-IN">नंबर</span>: &quot; + guessedNum + &quot;)&quot;;
+                found = true;
+            }
+        });
+
+        if(!found) {
+            status.style.display = &quot;block&quot;;
+            status.style.background = &quot;#55efc4&quot;;
+            status.style.color = &quot;#2d3436&quot;;
+            status.innerHTML = &quot;Miss Number! &quot; + guessedNum + &quot; <span lang="hi-IN">कोणाचाच नाही</span>. ✅&quot;;
+        }
+
+        element.classList.add('clicked'); // <span lang="hi-IN">बटनचा रंग बदलणे जेणेकरून कळेल तो नंबर दाबला आहे</span>
+        updatePlayerList();
+    }
+
+    function updatePlayerList() {
+        let list = document.getElementById('pList');
+        list.innerHTML = &quot;&quot;;
+        players.forEach(p =&gt; {
+            let li = document.createElement('li');
+            li.innerHTML = p.active ? `✅ ${p.name}` : `&lt;span class=&quot;out-player&quot;&gt;❌ ${p.name} (Eliminated)&lt;/span&gt;`;
+            list.appendChild(li);
+        });
+    }
+
+    createGrid();
+&lt;/script&gt;
+
+&lt;/body&gt;
+&lt;/html&gt;</pre>
+</body>
+</html>
